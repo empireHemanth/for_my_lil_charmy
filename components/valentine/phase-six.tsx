@@ -79,38 +79,45 @@ export function PhaseSix({ onNext }: PhaseSixProps) {
         <span className="mb-4 block text-5xl md:text-6xl">{"\uD83D\uDCF8"}</span>
 
         <h1 className="mb-8 text-3xl font-bold leading-tight tracking-tight text-[#3d1520] md:text-4xl lg:text-5xl">
-          {"Our Beautiful Memories \uD83D\uDC96\uD83C\uDF39"}
+          {"she's my forever\uD83C\uDF39\uD83D\uDC97\uD83D\uDC8C\u2728"}
         </h1>
 
-        {/* Photo Gallery */}
-        <div className="relative mx-auto mb-8 overflow-hidden rounded-2xl shadow-2xl">
-          {/* Image */}
-          <div className="relative aspect-[3/4] w-full bg-[#5c1a2a]/10">
-            <Image
-              src={photos[current].src}
-              alt={`Memory ${current + 1}`}
-              fill
-              className="object-cover gallery-slide"
-              sizes="(max-width: 768px) 100vw, 640px"
-              priority
-            />
-          </div>
-
-          {/* Navigation Arrows */}
+        {/* Navigation Arrows - Above Image */}
+        <div className="mb-4 flex items-center justify-center gap-6">
           <button
             onClick={() => goTo(current - 1)}
-            className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/30 p-2 text-white backdrop-blur-sm transition-all hover:bg-black/50 md:left-4 md:p-3"
+            className="rounded-full bg-[#e11d48] p-3 text-white shadow-lg transition-all hover:bg-[#be123c] hover:shadow-xl active:scale-95 md:p-4"
             aria-label="Previous photo"
           >
             <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
           </button>
+
+          <span className="font-body text-sm font-medium text-[#5c1a2a] md:text-base">
+            {current + 1} / {photos.length}
+          </span>
+
           <button
             onClick={() => goTo(current + 1)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/30 p-2 text-white backdrop-blur-sm transition-all hover:bg-black/50 md:right-4 md:p-3"
+            className="rounded-full bg-[#e11d48] p-3 text-white shadow-lg transition-all hover:bg-[#be123c] hover:shadow-xl active:scale-95 md:p-4"
             aria-label="Next photo"
           >
             <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
           </button>
+        </div>
+
+        {/* Photo */}
+        <div className="relative mx-auto mb-4 overflow-hidden rounded-2xl shadow-2xl">
+          <div className="relative aspect-[3/4] w-full bg-[#5c1a2a]/10">
+            <Image
+              key={current}
+              src={photos[current].src}
+              alt={`Memory ${current + 1}`}
+              fill
+              className="animate-fade-in object-cover"
+              sizes="(max-width: 768px) 100vw, 640px"
+              priority
+            />
+          </div>
 
           {/* Dots indicator */}
           <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
@@ -129,7 +136,7 @@ export function PhaseSix({ onNext }: PhaseSixProps) {
           </div>
         </div>
 
-        {/* Caption */}
+        {/* Caption below image */}
         <div className="mb-10 min-h-[80px] px-2">
           <p
             key={current}
