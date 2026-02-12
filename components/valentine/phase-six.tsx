@@ -85,7 +85,7 @@ export function PhaseSix({ onNext }: PhaseSixProps) {
         {/* Photo Gallery */}
         <div className="relative mx-auto mb-8 overflow-hidden rounded-2xl shadow-2xl">
           {/* Image */}
-          <div className="relative aspect-[4/3] w-full bg-[#5c1a2a]/10">
+          <div className="relative aspect-[3/4] w-full bg-[#5c1a2a]/10">
             <Image
               src={photos[current].src}
               alt={`Memory ${current + 1}`}

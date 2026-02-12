@@ -32,7 +32,7 @@ export function PhaseFinal() {
         ) : (
           <div className="animate-fade-in-up">
             {/* Together photo */}
-            <div className="relative mx-auto mb-8 aspect-[4/3] max-w-lg overflow-hidden rounded-2xl shadow-2xl">
+            <div className="relative mx-auto mb-8 aspect-[3/4] max-w-md overflow-hidden rounded-2xl shadow-2xl">
               <Image
                 src="/photos/together.jpg"
                 alt="Us together"
