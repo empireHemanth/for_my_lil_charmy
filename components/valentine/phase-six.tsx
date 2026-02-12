@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
@@ -38,15 +38,86 @@ const photos = [
 
 export function PhaseSix({ onNext }: PhaseSixProps) {
   const [current, setCurrent] = useState(0)
+  const [viewedPhotos, setViewedPhotos] = useState<Set<number>>(new Set([0]))
+  const [showPopup, setShowPopup] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
-  const goTo = (index: number) => {
-    if (index < 0) setCurrent(photos.length - 1)
-    else if (index >= photos.length) setCurrent(0)
-    else setCurrent(index)
+  const allViewed = viewedPhotos.size === photos.length
+
+  // Autoplay music on mount
+  useEffect(() => {
+    const audio = new Audio("/music/tum-hi-ho.mp3")
+    audio.loop = true
+    audio.volume = 0.5
+    audioRef.current = audio
+
+    const playPromise = audio.play()
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Autoplay blocked: play on first user interaction
+        const resumeAudio = () => {
+          audio.play().catch(() => {})
+          document.removeEventListener("click", resumeAudio)
+          document.removeEventListener("touchstart", resumeAudio)
+        }
+        document.addEventListener("click", resumeAudio)
+        document.addEventListener("touchstart", resumeAudio)
+      })
+    }
+
+    return () => {
+      audio.pause()
+      audio.src = ""
+      audioRef.current = null
+    }
+  }, [])
+
+  const goTo = useCallback(
+    (index: number) => {
+      let next = index
+      if (next < 0) next = photos.length - 1
+      else if (next >= photos.length) next = 0
+
+      setCurrent(next)
+      setViewedPhotos((prev) => new Set(prev).add(next))
+    },
+    []
+  )
+
+  const handleContinue = () => {
+    if (!allViewed) {
+      setShowPopup(true)
+      setTimeout(() => setShowPopup(false), 3000)
+      return
+    }
+    // Stop music before leaving
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.src = ""
+    }
+    onNext()
   }
 
   return (
-    <div className="light-phase flex min-h-screen flex-col items-center justify-center px-4 py-12 text-center md:px-6">
+    <div className="light-phase relative flex min-h-screen flex-col items-center justify-center px-4 py-12 text-center md:px-6">
+      {/* Popup message when trying to skip */}
+      {showPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="animate-fade-in-up mx-4 rounded-2xl bg-white px-8 py-6 shadow-2xl">
+            <p className="text-lg font-semibold text-[#e11d48]">
+              {"Please view all our memories first \u2764\uFE0F\uD83E\uDD7A"}
+            </p>
+            <p className="mt-2 font-body text-sm text-[#5c1a2a]">
+              {"You\u2019ve seen "}
+              {viewedPhotos.size}
+              {" of "}
+              {photos.length}
+              {" photos. Use the arrows to see them all \uD83D\uDC95"}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="stagger-children w-full max-w-2xl">
         <span className="mb-4 block text-5xl md:text-6xl">{"\uD83D\uDCF8"}</span>
 
@@ -91,7 +162,7 @@ export function PhaseSix({ onNext }: PhaseSixProps) {
             />
           </div>
 
-          {/* Dots indicator */}
+          {/* Dots indicator - filled if viewed */}
           <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
             {photos.map((_, i) => (
               <button
@@ -100,7 +171,9 @@ export function PhaseSix({ onNext }: PhaseSixProps) {
                 className={`h-2.5 w-2.5 rounded-full transition-all ${
                   i === current
                     ? "w-6 bg-white"
-                    : "bg-white/40 hover:bg-white/60"
+                    : viewedPhotos.has(i)
+                      ? "bg-white/80"
+                      : "bg-white/30 hover:bg-white/50"
                 }`}
                 aria-label={`Go to photo ${i + 1}`}
               />
@@ -112,18 +185,33 @@ export function PhaseSix({ onNext }: PhaseSixProps) {
         <div className="mb-10 min-h-[80px] px-2">
           <p
             key={current}
-            className="font-body text-base italic leading-relaxed text-[#5c1a2a] animate-fade-in md:text-lg"
+            className="animate-fade-in font-body text-base italic leading-relaxed text-[#5c1a2a] md:text-lg"
           >
             {photos[current].caption}
           </p>
         </div>
 
         <button
-          onClick={onNext}
-          className="glow-button animate-pulse-glow rounded-full bg-[#e11d48] px-10 py-4 text-lg font-semibold text-white transition-all hover:bg-[#be123c] md:px-14 md:py-5 md:text-xl"
+          onClick={handleContinue}
+          className={`glow-button rounded-full px-10 py-4 text-lg font-semibold text-white transition-all md:px-14 md:py-5 md:text-xl ${
+            allViewed
+              ? "animate-pulse-glow bg-[#e11d48] hover:bg-[#be123c]"
+              : "cursor-not-allowed bg-[#e11d48]/40"
+          }`}
         >
           {"Continue \uD83D\uDC98"}
         </button>
+
+        {/* Viewed counter hint */}
+        {!allViewed && (
+          <p className="mt-4 animate-fade-in font-body text-xs text-[#5c1a2a]/60">
+            {"Viewed "}
+            {viewedPhotos.size}
+            {" of "}
+            {photos.length}
+            {" memories \u2014 see them all to continue"}
+          </p>
+        )}
       </div>
     </div>
   )
