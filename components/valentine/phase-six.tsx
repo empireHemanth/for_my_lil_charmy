@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
@@ -38,43 +38,15 @@ const photos = [
 
 export function PhaseSix({ onNext }: PhaseSixProps) {
   const [current, setCurrent] = useState(0)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const audioRef = useRef<HTMLAudioElement>(null)
-
-  const startMusic = useCallback(() => {
-    if (audioRef.current && !isPlaying) {
-      audioRef.current.volume = 0.3
-      audioRef.current.play().then(() => {
-        setIsPlaying(true)
-      }).catch(() => {
-        // Autoplay blocked, user needs to interact
-      })
-    }
-  }, [isPlaying])
-
-  useEffect(() => {
-    // Try to autoplay after a short delay
-    const timer = setTimeout(startMusic, 500)
-    return () => clearTimeout(timer)
-  }, [startMusic])
 
   const goTo = (index: number) => {
     if (index < 0) setCurrent(photos.length - 1)
     else if (index >= photos.length) setCurrent(0)
     else setCurrent(index)
-    startMusic()
   }
 
   return (
     <div className="light-phase flex min-h-screen flex-col items-center justify-center px-4 py-12 text-center md:px-6">
-      {/* Background music - uses a royalty-free romantic melody URL */}
-      <audio
-        ref={audioRef}
-        loop
-        preload="auto"
-        src="https://cdn.pixabay.com/audio/2022/02/23/audio_d1718ab41b.mp3"
-      />
-
       <div className="stagger-children w-full max-w-2xl">
         <span className="mb-4 block text-5xl md:text-6xl">{"\uD83D\uDCF8"}</span>
 
@@ -145,15 +117,6 @@ export function PhaseSix({ onNext }: PhaseSixProps) {
             {photos[current].caption}
           </p>
         </div>
-
-        {!isPlaying && (
-          <button
-            onClick={startMusic}
-            className="mb-4 font-body text-sm text-[#7a2e3f]/60 underline transition-colors hover:text-[#7a2e3f]"
-          >
-            {"Tap to play music \uD83C\uDFB6"}
-          </button>
-        )}
 
         <button
           onClick={onNext}

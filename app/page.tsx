@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef } from "react"
 import { PhaseOne } from "@/components/valentine/phase-one"
 import { PhaseTwo } from "@/components/valentine/phase-two"
 import { PhaseThree } from "@/components/valentine/phase-three"
@@ -24,10 +24,37 @@ export default function Page() {
   const [phase, setPhase] = useState(0)
   const [transitioning, setTransitioning] = useState(false)
   const [showHearts, setShowHearts] = useState(false)
+  const [musicPlaying, setMusicPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement>(null)
+
+  const startMusic = useCallback(() => {
+    if (audioRef.current && !musicPlaying) {
+      audioRef.current.volume = 0.25
+      audioRef.current.play().then(() => {
+        setMusicPlaying(true)
+      }).catch(() => {
+        // autoplay blocked
+      })
+    }
+  }, [musicPlaying])
+
+  const toggleMusic = useCallback(() => {
+    if (!audioRef.current) return
+    if (musicPlaying) {
+      audioRef.current.pause()
+      setMusicPlaying(false)
+    } else {
+      audioRef.current.volume = 0.25
+      audioRef.current.play().then(() => setMusicPlaying(true)).catch(() => {})
+    }
+  }, [musicPlaying])
 
   const goToPhase = useCallback(
     (nextPhase: number) => {
       setTransitioning(true)
+
+      // Start music on first interaction
+      if (nextPhase === 1) startMusic()
 
       // Trigger falling hearts on special transitions
       if (nextPhase === 1 || nextPhase === 6) {
@@ -72,6 +99,23 @@ export default function Page() {
     <main
       className={`relative min-h-screen overflow-hidden phase-transition ${phaseBackgrounds[phase]}`}
     >
+      {/* Background Music */}
+      <audio
+        ref={audioRef}
+        loop
+        preload="auto"
+        src="https://cdn.pixabay.com/audio/2022/02/23/audio_d1718ab41b.mp3"
+      />
+
+      {/* Music toggle button */}
+      <button
+        onClick={toggleMusic}
+        className="fixed right-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-lg backdrop-blur-sm transition-all hover:bg-white/25 md:h-12 md:w-12 md:text-xl"
+        aria-label={musicPlaying ? "Pause music" : "Play music"}
+      >
+        {musicPlaying ? "\u{1F3B6}" : "\u{1F507}"}
+      </button>
+
       {/* Falling hearts effect */}
       <FallingHearts active={showHearts} />
 
